@@ -162,6 +162,7 @@ require('dotenv').config();
 
 const { getAirportData } = require('./src/app');
 ```
+```
 
 2. Initialize Express application: The Express application is initialized and stored in the `app` variable.
 
