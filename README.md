@@ -200,7 +200,7 @@ Tokens Used: 2214
         Completion Tokens: 397
 Successful Requests: 1
 Total Cost (USD): $0.07833
-```
+
 ```
 > ℹ️ Note that it also prints how many tokens were used and an estimate cost for the OpenAI API.
 
