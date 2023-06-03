@@ -1,8 +1,0 @@
-This is a list of file paths from the GitHub repository named node-hunter-api by soos3d:
-src/endpointsList.js
-src/getLocation.js
-src/server.js
-src/testNodeLatency.js
-src/testNodeSettings.js
-README.md
-package.json
