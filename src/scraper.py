@@ -100,6 +100,7 @@ def main(repo_url):
     txt_file_path = os.path.join(output_dir_path, txt_filename)
 
     file_paths = process_repository(repo_url, output_dir_path)
+    print("=" * 100)
     print(f"Repository contents written to {output_dir_path}.")
 
     # Write the list of file paths to a TXT file
@@ -107,7 +108,8 @@ def main(repo_url):
         txtfile.write(f"This is a list of file paths from the GitHub repository named {repo_name} by {user_name}:\n")
         for file_path in file_paths:
             txtfile.write(file_path + "\n")
-    print(f"List of file paths written to {txt_file_path}.")
+    print("=" * 100)
+    print(f"List of file paths written to {txt_file_path}.\n")
 
 
 

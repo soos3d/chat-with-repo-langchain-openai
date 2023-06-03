@@ -5,7 +5,7 @@
     "htype": "generic",
     "is_link": false,
     "is_sequence": false,
-    "length": 25,
+    "length": 13,
     "links": {},
     "max_chunk_size": 4000000,
     "max_shape": [

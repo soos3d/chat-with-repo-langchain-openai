@@ -1,8 +1,0 @@
-This is a list of file paths from the GitHub repository named chatgpt-plugin-development-quickstart-express by soos3d:
-.well-known/ai-plugin.json
-src/app.js
-.env.sample
-README.md
-index.js
-openapi.yaml
-package.json

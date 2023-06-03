@@ -15,7 +15,7 @@ os.environ['ACTIVELOOP_TOKEN'] = os.getenv('ACTIVELOOP_TOKEN')
 language_model = os.getenv('LANGUAGE_MODEL')
 
 # Set DeepLake dataset path
-DEEPLAKE_PATH = './local_vector_db'
+DEEPLAKE_PATH = os.getenv('DATASET_PATH')
 
 # Initialize OpenAI embeddings and disallow special tokens
 EMBEDDINGS = OpenAIEmbeddings(disallowed_special=())
@@ -47,7 +47,7 @@ chat_history = []
 
 def get_user_input():
     """Get user input and handle 'quit' command."""
-    question = input("Please enter your question (or 'quit' to stop): ")
+    question = input("\nPlease enter your question (or 'quit' to stop): ")
     if question.lower() == 'quit':
         return None
     return question

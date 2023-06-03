@@ -24,7 +24,8 @@ def main():
     os.environ['OPENAI_API_KEY'] = os.getenv('OPENAI_API_KEY')
     os.environ['ACTIVELOOP_TOKEN'] = os.getenv('ACTIVELOOP_TOKEN')
 
-    repo_url = os.getenv('REPO_URL')
+    #repo_url = os.getenv('REPO_URL')   # Enable this if you want to input the URL from env variables.
+    repo_url = input('Input the repository you want to index: ')
     max_attempts = int(os.getenv('MAX_ATTEMPTS', 5))  # Set a default value for max_attempts
 
     # Config embeddings model
@@ -34,7 +35,7 @@ def main():
     # Scrape the repo; will create a txt file with the organized data
     for attempt in range(1, max_attempts+1):
         try:
-            print('Scraping the repository...')
+            print('Scraping the repository...\n')
             start_time = time.time()  
             github_scraper_main(repo_url)
             elapsed_time = time.time() - start_time  
@@ -50,28 +51,32 @@ def main():
 
     # Load the document
     loader = DirectoryLoader('./repos_content/', glob="**/*.txt", show_progress=True, use_multithreading=True)
+    print("=" * 100)
     print('Loading docs...')
     docs = loader.load()
     print(f"Loaded {len(docs)} documents.")
 
     # Split the docs
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=10, length_function=len)
-    print('Splitting document...')
+    print("=" * 100)
+    print('Splitting documents...')
     text = text_splitter.split_documents(docs)
     print(f'Generated {len(text)} chunks.')
 
     # Generate vectors and update the vector db.
+    print("=" * 100)
     print('Creating vector DB...')
 
     # Set the deeplake_path to the repository name
-    deeplake_path = './local_vector_db'
+    deeplake_path = os.getenv('DATASET_PATH')
     db = DeepLake(dataset_path=deeplake_path, embedding_function=embeddings, overwrite=True)
+
 
     # Enable the following to create a cloud vector DB using Deep Lake
     """
-    #deeplake_path = 'hub://USER_ID/custom_dataset' # Edit with your user id
-    #ds = deeplake.empty(deeplake_path)
-    #db = DeepLake(dataset_path=deeplake_path, embedding_function=embeddings, overwrite=True, public=True)
+    deeplake_path = os.getenv('DATASET_PATH')
+    ds = deeplake.empty(deeplake_path)
+    db = DeepLake(dataset_path=deeplake_path, embedding_function=embeddings, overwrite=True, public=True)
     """
 
     db.add_documents(text)
