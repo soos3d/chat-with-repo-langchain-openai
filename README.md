@@ -38,12 +38,12 @@ source repo-ai/bin/activate
 * Clone the repository:
 
 ```sh
-git clone 
+git clone https://github.com/soos3d/chat-with-repo-langchain-openai.git
 ```
 Then:
 
 ```sh
-cd chat-with-repo-langchain
+cd chat-with-repo-langchain-openai
 ```
 
 * Install the Python dependencies:
