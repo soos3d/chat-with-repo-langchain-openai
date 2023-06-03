@@ -1,0 +1,41 @@
+The following is the content of a file named openapi.yaml from a GitHub repository named chatgpt-plugin-development-quickstart-express by soos3d. The content starts after ------ and ends before --END--.
+------
+openapi.yaml
+openapi: 3.0.0
+info:
+  title: Airports API
+  description: Interact with the airport API
+  version: 1.0.0
+servers:
+  - url: http://localhost:3333
+paths:
+  /airportData:
+    post:
+      summary: Get airpot data based on a city
+      operationId: airportData
+      description: This API returns the details of airports present in the city gave by the user. Only take the name of the city, this endpoint does not accept states or regions and returns all the airports matching  city.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                city:
+                  type: string
+                  description: The city to find airports at
+      responses:
+        '200':
+          description: Request successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  description: The airports details
+        '404':
+          description: Not found
+        '500':
+          description: Server error
+--END--
