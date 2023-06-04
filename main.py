@@ -84,10 +84,25 @@ def main():
 
 # Enable the following section and edit the questions to test while indexing a new repository.
 """
+    # Initialize DeepLake vector store with OpenAI embeddings
+    deep_lake = DeepLake(
+        dataset_path=deeplake_path,
+        read_only=True,
+        embedding_function=embeddings,
+    )
+    # Initialize retriever and set search parameters
+    retriever = deep_lake.as_retriever()
+    retriever.search_kwargs.update({
+        'distance_metric': 'cos',
+        'fetch_k': 100,
+        'maximal_marginal_relevance': True,
+        'k': 10,
+    })
+
     # List questions to answer in a row.
     # Initialize GPT model
     language_model= os.getenv('LANGUAGE_MODEL')
-    model = ChatOpenAI(model_name=language_model) # gpt-3.5-turbo by default, edit in .env 
+    model = ChatOpenAI(model_name=language_model, temperature=0.2) # gpt-3.5-turbo by default, edit in .env 
     qa = ConversationalRetrievalChain.from_llm(model, retriever=retriever)
 
     questions = [
@@ -103,7 +118,7 @@ def main():
         chat_history.append((question, result['answer']))
         print(f"-> **Question**: {question}\n")
         print(f"**Answer**: {result['answer']}\n")
-
 """
+
 if __name__ == "__main__":
     main()
