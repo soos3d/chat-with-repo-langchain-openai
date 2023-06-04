@@ -11,6 +11,26 @@ To handle the 'AI' part, the program utilizes the [Langchain](https://python.lan
 
 With this setup, you can interact with 'chat' with any repository.
 
+## Project structure
+
+This project only has three files! Langchain really allows to simply the logic. 
+
+```sh
+chat-with-repo-langchain
+  │
+  ├── main.py
+  ├── chat.py
+  ├── src
+  │   └── scraper.py
+  └── .env
+```
+
+- `main.py`: This is the entry point and the part responsible for ingesting a repository URL, generating embedding vectors, and indexing it in a vector database.
+- `chat.py`: This module starts the chat functionality, accepts user queries, and gets the context from the Vectore database; it also stores the chat history for the time it's running.
+- `src/scraper.py`: This file holds the scraping logic, and this module is called during the execution of `main.py`.
+- `.env`: This is where environment variables are stored; it also holds the configuration of the vector database.
+
+
 ## Requirements
 
 Before getting started, ensure you have the following:
