@@ -11,6 +11,14 @@ To handle the 'AI' part, the program utilizes the [Langchain](https://python.lan
 
 With this setup, you can interact with 'chat' with any repository.
 
+## Table of contents
+
+- [Project structure](#project-structure)
+- [Requirements](#requirements)
+- [Getting Started](#getting-started)
+- [Use a cloud vector database](#use-a-cloud-vector-database)
+- [Configuration](#configuration)
+
 ## Project structure
 
 This project only has three files! Langchain really allows to simply the logic. 
