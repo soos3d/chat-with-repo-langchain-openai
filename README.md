@@ -1,287 +1,127 @@
-# Scrape and chat with repositories
+# Chat with a GitHub repo
 
-This project is designed to allow you to plug in a GitHub repository URL (like `https://github.com/soos3d/chatgpt-plugin-development-quickstart-express`) and then engage with OpenAI's Chat GPT models to gain a better understanding of the repository's codebase.
+Ask questions about any public GitHub repository, in plain English, from your terminal.
 
-To handle the 'AI' part, the program utilizes the [Langchain](https://python.langchain.com/en/latest/index.html) framework and [Deep Lake](https://docs.activeloop.ai/) following this logic:
+Point it at a repo, and it clones the code, embeds it, and stores it in a local vector database.
+Then you chat with an agent that searches that database whenever it needs to look something up:
 
-1. The repository is scraped, and each file's content is saved in a `txt` format.
-2. Langchain is used to load this data, break it down into chunks, and create embedding vectors using the OpenAI embedding model.
-3. Langchain then helps to build a vector database using Deep Lake.
-4. Lastly, Langchain spins up a chat bot with the help of a Chat GPT model.
+```
+Please enter your question (or 'quit' to stop): what does the ai-plugin.json manifest configure?
 
-With this setup, you can interact with 'chat' with any repository.
+Answer: The `.well-known/ai-plugin.json` manifest declares the plugin's name, description, and
+auth mode ("none"), and points to the OpenAPI spec at /openapi.yaml. (.well-known/ai-plugin.json)
 
-## Table of contents
-
-- [Project structure](#project-structure)
-- [Requirements](#requirements)
-- [Getting Started](#getting-started)
-- [Use a cloud vector database](#use-a-cloud-vector-database)
-- [Configuration](#configuration)
-
-## Project structure
-
-This project only has three files! Langchain really allows to simply the logic. 
-
-```sh
-chat-with-repo-langchain
-  │
-  ├── main.py
-  ├── chat.py
-  ├── src
-  │   └── scraper.py
-  └── .env
+Tokens - input: 4821, output: 96
 ```
 
-- `main.py`: This is the entry point and the part responsible for ingesting a repository URL, generating embedding vectors, and indexing it in a vector database.
-- `chat.py`: This module starts the chat functionality, accepts user queries, and gets the context from the Vectore database; it also stores the chat history for the time it's running.
-- `src/scraper.py`: This file holds the scraping logic, and this module is called during the execution of `main.py`.
-- `.env`: This is where environment variables are stored; it also holds the configuration of the vector database.
+Built with [LangChain](https://docs.langchain.com/oss/python/langchain/overview), OpenAI, and
+[Chroma](https://www.trychroma.com/).
 
+## Quickstart
 
-## Requirements
-
-Before getting started, ensure you have the following:
-
-* [Python](https://www.python.org/downloads/) - Version 3.7 or newer is required.
-* An active account on OpenAI, along with an [OpenAI API key](https://platform.openai.com/account/api-keys).
-* A Deep Lake account, complete with a [Deep Lake API key](https://app.activeloop.ai/?utm_source=referral&utm_medium=platform&utm_campaign=signup_promo_settings&utm_id=plg).
-
-## Getting Started
-
-> ℹ️ It's strongly advised to create a new Python virtual environment to run this program. It helps maintain a tidy workspace by keeping dependencies in one place.
-
-* Create a Python virtual environment with:
+You need Python 3.10+, `git`, and an [OpenAI API key](https://platform.openai.com/api-keys).
 
 ```sh
-python3 -m venv repo-ai
-```
-
-Then activate it with:
-
-```sh
-source repo-ai/bin/activate
-```
-
-* Clone the repository:
-
-```sh
-git clone https://github.com/soos3d/chat-with-repo-langchain-openai.git
-```
-Then:
-
-```sh
+git clone https://github.com/soos3d/chat-with-repo-langchain-openai
 cd chat-with-repo-langchain-openai
-```
 
-* Install the Python dependencies:
-
-```sh
+python3 -m venv repo-ai && source repo-ai/bin/activate
 pip install -r requirements.txt
+
+cp .env.sample .env      # then add your OPENAI_API_KEY
 ```
 
-This will install all of the required Langchain, OpenAI, and Deep Lake dependencies.
-
-* Edit the `.env.sample` file with your information, specifically the API keys:
-
-```env
-# Scraper config
-FILES_TO_IGNORE='"package-lock.json", "LICENSE", ".gitattributes", ".gitignore", "yarn.lock"'
-SAVE_PATH="./repos_content"     # Save the scraped data in a directory called repos-content in the root
-MAX_ATTEMPTS=3
-
-# Repository to scrape if the hardcoded section is active.
-REPO_URL="https://github.com/soos3d/chatgpt-plugin-development-quickstart-express"
-
-# OpenAI 
-OPENAI_API_KEY="YOUR_KEY"
-EMBEDDINGS_MODEL="text-embedding-ada-002"
-LANGUAGE_MODEL="gpt-3.5-turbo" # gpt-4
-
-# Deeplake vector DB
-ACTIVELOOP_TOKEN="YOUR_KEY"
-DATASET_PATH="./local_vector_db" # "hub://USER_ID/custom_dataset"  # Edit with your user id if you want to use the cloud db.
-```
-
-Here is where you select which Chat GPT model to use; `gpt-3.5-turbo` it the default model, and the path to the cloud vector dataset if you don't want to store it locally; it is set up locally by default.
-
-* Run the `main.py` file:
+Index a repository:
 
 ```sh
-python3 main.py
+python3 ingest.py
+# Input the repository you want to index: https://github.com/soos3d/chatgpt-plugin-development-quickstart-express
 ```
 
-* Input a repository URL
-
-```sh
-Input the repository you want to index: https://github.com/soos3d/chatgpt-plugin-development-quickstart-express
-```
-
-This will scrape the repository, load the files, split it in chunks, generate embedding vectors, create a local vector database and store the embeddings.
-
-You will see the following response:
-
-```sh
-Scraping the repository...
-
-====================================================================================================
-Repository contents written to ./repos_content/soos3d_chatgpt-plugin-development-quickstart-express.
-====================================================================================================
-List of file paths written to ./repos_content/soos3d_chatgpt-plugin-development-quickstart-express/soos3d_chatgpt-plugin-development-quickstart-express_file_paths.txt.
-
-Time needed to pull the data: 10.23s.
-====================================================================================================
-Loading docs...
- 88%|███████████████████████████████████████████████████████████████████████████████████████████▉             | 7/8 [00:01<00:00,  5.79it/s]
-Loaded 7 documents.
-====================================================================================================
-Splitting documents...
-Generated 25 chunks.
-====================================================================================================
-Creating vector DB...
-./local_vector_db loaded successfully.
-Evaluating ingest: 100%|██████████████████████████████████████████████████████████████████████████████████████████████████| 1/1 [00:05<00:00
-Dataset(path='./local_vector_db', tensors=['embedding', 'ids', 'metadata', 'text'])
-
-  tensor     htype     shape      dtype  compression
-  -------   -------   -------    -------  ------- 
- embedding  generic  (25, 1536)  float32   None   
-    ids      text     (25, 1)      str     None   
- metadata    json     (25, 1)      str     None   
-   text      text     (25, 1)      str     None   
-Vector database updated.
-```
-
-* Chat with the repository:
+Then chat with it:
 
 ```sh
 python3 chat.py
 ```
 
-This will start the chat model and you can leverage it's full power, I recomend to use the GPT 4 model if possible. The followinf is an example response based on my [ChatGPT plugins boilerplate repository]() using the `gpt4` model:
+Type `quit` to exit.
 
-```sh
-./local_vector_db loaded successfully.
+## How it works
 
-Deep Lake Dataset in ./local_vector_db already exists, loading from the storage
-Dataset(path='./local_vector_db', read_only=True, tensors=['embedding', 'ids', 'metadata', 'text'])
+Two scripts, one job each.
 
-  tensor     htype     shape      dtype  compression
-  -------   -------   -------    -------  ------- 
- embedding  generic  (25, 1536)  float32   None   
-    ids      text     (25, 1)      str     None   
- metadata    json     (25, 1)      str     None   
-   text      text     (25, 1)      str     None   
+**`ingest.py` — build the index.**
 
-Please enter your question (or 'quit' to stop): Can you explain how the index.js file in the ChatpGTP plugin quickstart repo works?
+1. `src/repo_loader.py` shallow-clones the repo into a temp directory and walks it, keeping text
+   files and skipping binaries, lockfiles, and `node_modules`. Each file becomes a LangChain
+   `Document` tagged with its real path, so answers can cite `src/app.js` rather than a filename
+   with no context.
+2. `RecursiveCharacterTextSplitter` cuts them into 1000-character chunks with 200 characters of
+   overlap, so a function split across a boundary is still readable in both halves.
+3. `OpenAIEmbeddings` turns each chunk into a vector, and Chroma persists them to `./chroma_db`.
 
-Question: Can you explain how the index.js file in the ChatpGTP plugin quickstart repo works?
-Answer: Certainly! The `index.js` file in the ChatGPT plugin quickstart repository serves as the entry point for the Express.js server application. Here's a breakdown of its functionality:
+Nothing is written outside the temp clone and the vector DB. Re-running `ingest.py` rebuilds the
+database from scratch — one repo indexed at a time.
 
-1. Import required modules: The necessary modules are imported, including `express`, `path`, `cors`, `fs`, and `body-parser`. Additionally, the custom module `getAirportData` is imported from `./src/app`.
+**`chat.py` — ask questions.**
 
-```javascript
-const express = require('express');
-const path = require('path');
-const cors = require('cors');
-const fs = require('fs');
-const bodyParser = require('body-parser');
-require('dotenv').config();
+This is the interesting part. Instead of a fixed retrieve-then-answer pipeline, the retriever is
+wrapped in a *tool* and handed to an agent:
 
-const { getAirportData } = require('./src/app');
-```
-```
+```python
+@tool
+def search_repo(query: str) -> str:
+    """Search the indexed GitHub repository and return the most relevant file excerpts."""
+    docs = retriever.invoke(query)
+    return "\n\n".join(f"## {d.metadata['source']}\n{d.page_content}" for d in docs)
 
-2. Initialize Express application: The Express application is initialized and stored in the `app` variable.
-
-```javascript
-const app = express();
+agent = create_agent(
+    model=f"openai:{language_model}",
+    tools=[search_repo],
+    system_prompt=SYSTEM_PROMPT,
+)
 ```
 
-3. Set the port number: The port number is set based on the environment variable `PORT` or defaults to 3000 if `PORT` is not set.
+That one change is what makes this *agentic* RAG. The model decides when to search and what to
+search for — so it can rephrase a vague question into a better query, search several times to
+gather related files, or answer a follow-up from what it already retrieved. A fixed chain always
+runs exactly one search on the raw user question, whether or not that is the right query.
 
-```javascript
-const PORT = process.env.PORT || 3000;
-```
+Retrieval uses MMR (maximal marginal relevance), which pulls the top 6 chunks out of 40
+candidates while penalizing near-duplicates. On a codebase that matters: a plain similarity search
+will happily return six chunks of the same file.
 
-4. Configure Express to parse JSON: The application is configured to parse JSON in the body of incoming requests using `bodyParser.json()`.
-
-```javascript
-app.use(bodyParser.json());
-```
-
-5. Configure CORS options: CORS (Cross-Origin Resource Sharing) is configured to allow requests from `https://chat.openai.com` and to send a 200 status code for successful preflight requests for compatibility with some older browsers.
-
-```javascript
-const corsOptions = {
-  origin: 'https://chat.openai.com',
-  optionsSuccessStatus: 200
-};
-
-app.use(cors(corsOptions));
-```
-
-The rest of the `index.js` file sets up the server to listen on the specified port and handles the routes for the plugin. The server starts listening for incoming requests on the specified port, and the plugin is ready to be used with ChatGPT.
-
-Tokens Used: 2214
-        Prompt Tokens: 1817
-        Completion Tokens: 397
-Successful Requests: 1
-Total Cost (USD): $0.07833
-
-```
-> ℹ️ Note that it also prints how many tokens were used and an estimate cost for the OpenAI API.
-
-## Use a cloud vector database
-
-By default this project creates a local vector database using [Deep Lake](https://app.activeloop.ai/?utm_source=referral&utm_medium=platform&utm_campaign=signup_promo_settings&utm_id=plg), but you can also use a cloud based DB. 
-
-> Note that e local database will be faster.
-
-In `main.py` uncomment the following section:
-
-```py
-    # Enable the following to create a cloud vector DB using Deep Lake
-    """
-    deeplake_path = os.getenv('DATASET_PATH')
-    ds = deeplake.empty(deeplake_path)
-    db = DeepLake(dataset_path=deeplake_path, embedding_function=embeddings, overwrite=True, public=True)
-    """
-```
-
-Remember to edit the environment variable for the dataset path and add the `USER_ID` you have in your [Deep Lake](https://app.activeloop.ai/?utm_source=referral&utm_medium=platform&utm_campaign=signup_promo_settings&utm_id=plg) account, and to remove or comment the code to create the local DB.
-
-```env
-DATASET_PATH="hub://USER_ID/custom_dataset"  # Edit with your user id if you want to use the cloud db.
-```
-
-```py
-    # Set the deeplake_path to the repository name
-    deeplake_path = os.getenv('DATASET_PATH')
-    db = DeepLake(dataset_path=deeplake_path, embedding_function=embeddings, overwrite=True)
-```
+Chat history is just the running list of messages passed back into `agent.invoke()` each turn.
 
 ## Configuration
 
-The entire app is configured from the `.env` file so you don't have to actually change the code if you don't want to. 
+All settings live in `.env`:
 
-* FILES_TO_IGNORE is a list of files that will not be scraped. This is to reduce clutter and save some resources.
+| Variable | Description |
+| --- | --- |
+| `OPENAI_API_KEY` | Your OpenAI API key. |
+| `LANGUAGE_MODEL` | Chat model used to answer. Defaults to `gpt-4o-mini`. |
+| `EMBEDDINGS_MODEL` | Embedding model. Must be the same for `ingest.py` and `chat.py`. |
+| `CHROMA_PATH` | Where the local vector DB is written. |
+| `FILES_TO_IGNORE` | Comma-separated file names to skip while indexing. |
 
-```env
-# Scraper config
-FILES_TO_IGNORE='"package-lock.json", "LICENSE", ".gitattributes", ".gitignore", "yarn.lock"'
-SAVE_PATH="./repos_content"     # Save the scraped data in a directory called repos-content in the root
-MAX_ATTEMPTS=3
+## Notes
 
-# Repository to scrape if the hardcoded section is active.
-REPO_URL="https://github.com/soos3d/chatgpt-plugin-development-quickstart-express"
+- **Start small.** Indexing is one embedding call per chunk, so a large repo costs real money and
+  time. A repo with a few dozen files is a good demo; a monorepo is not.
+- **Only public repos.** The clone is unauthenticated.
+- **Changing `EMBEDDINGS_MODEL` means re-running `ingest.py`.** Vectors from two different models
+  are not comparable, and the search results will be nonsense.
 
-# OpenAI 
-OPENAI_API_KEY="YOUR_KEY"
-EMBEDDINGS_MODEL="text-embedding-ada-002"
-LANGUAGE_MODEL="gpt-3.5-turbo" # gpt-4
+## Troubleshooting
 
-# Deeplake vector DB
-ACTIVELOOP_TOKEN="YOUR_KEY"
-DATASET_PATH="./local_vector_db" # "hub://USER_ID/custom_dataset"  # Edit with your user id if you want to use the cloud db.
-```
+| Problem | Fix |
+| --- | --- |
+| `No vector DB found at ./chroma_db` | Run `python3 ingest.py` first. |
+| `OPENAI_API_KEY is not set` | `cp .env.sample .env` and add your key — the code reads `.env`, not `.env.sample`. |
+| `git clone failed` | Check the URL is a public repo, in the form `https://github.com/owner/repo`. |
+| Answers cite the wrong files | The repo may be too large for 6 chunks of context; raise `k` in `chat.py`. |
+
+## License
+
+Apache 2.0 — see [LICENSE](LICENSE).
